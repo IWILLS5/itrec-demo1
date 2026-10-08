@@ -35,8 +35,8 @@ swanlab.init(
     }
 )
 ```
-2.根据项目更改config.py的配置
-3.运行datasets_clean.py文件
+2.根据项目更改config.py的配置<br>
+3.运行datasets_clean.py文件<br>
 4.运行train.py文件
 ## 超参数不同下的指标对比
 | 序号 | 训练 | epochs | batch | dropout | bert-base-lr | classifier-lr |  best_dev_acc | test_loss | test_acc |
