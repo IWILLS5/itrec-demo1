@@ -35,7 +35,10 @@ class TCModel_formBert(nn.Module):
 
 
 if __name__ == '__main__':
-    pt_model_path = "./pretrained_models/bert-base-chinese"
-    num_labels = 15
+    from config import Config
+    config = Config()
+    pt_model_path = config.model.pt_model_path
+    num_labels = config.model.num_labels
+
     model = TCModel_formBert(pt_model_path, num_labels)
     print(model)

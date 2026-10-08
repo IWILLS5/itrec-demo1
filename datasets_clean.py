@@ -1,7 +1,7 @@
 import json
 
 
-def TC_clean(data_path, TC_new_id_convert_op):
+def TC_clean(data_path, TC_new_id_convert_path):
     datas = {}
     new_id = set()
     new_id_label = {}
@@ -23,6 +23,12 @@ def TC_clean(data_path, TC_new_id_convert_op):
         new_id_convert[v[0]] = k
         id_to_new_id[k] = v[0]
         new_id_label[v[0]] = v[1]
+
+    with open(TC_new_id_convert_path, 'w', encoding='utf-8') as f:
+        json.dump({
+            "new_id_label" : new_id_label,
+            "new_id_convert" : new_id_convert
+        }, f, ensure_ascii=False, indent=2)
 
     def re_ids_find_max_len(datas):
         new_ids = []
@@ -83,15 +89,11 @@ def TC_clean(data_path, TC_new_id_convert_op):
             repeat_ids_dev.append(id)
     print(f'repeat_ids_test : {repeat_ids_test}')
 
-    with open(TC_new_id_convert_op, 'w', encoding='utf-8') as f:
-                json.dump(new_id_label, f, ensure_ascii=False, indent=2)
 
 if __name__ == '__main__':
-
-    data_path = {
-       'train': 'datas/0.demo1文本分类/train_3k.txt',
-       'dev': 'datas/0.demo1文本分类/dev_1k.txt',
-       'test': 'datas/0.demo1文本分类/test_1k.txt'
-    }
-    TC_new_id_convert_op = "Demo/demo1/new_id_convert.json"
-    TC_clean(data_path, TC_new_id_convert_op)
+    from config import Config
+    config = Config()
+    data_path = config.data.data_path
+    TC_new_id_convert_path = config.data.TC_new_id_convert_path
+    
+    TC_clean(data_path, TC_new_id_convert_path)

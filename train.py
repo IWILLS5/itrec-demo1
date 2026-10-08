@@ -281,7 +281,11 @@ class TC_Experiment:
 
 def main():
     config = Config()
-    new_id_convert = TC_clean(config.data.data_path)
+    #获取new_id_convert
+    with open(config.data.TC_new_id_convert_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    
+    new_id_convert = data['new_id_convert']
     exp = TC_Experiment(config, new_id_convert)
     exp.run()
 

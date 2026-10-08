@@ -10,6 +10,7 @@ class DataConfig:
         'dev': 'datas/0.demo1文本分类/dev_1k.txt',
         'test': 'datas/0.demo1文本分类/test_1k.txt'
     }
+    TC_new_id_convert_path = "Demo/demo1/new_id_convert.json"
     tokenizer_path = './pretrained_models/bert-base-chinese'
     max_len = 512
     batch_size = 32
