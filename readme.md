@@ -8,12 +8,16 @@
 - environment.yml : conda环境文件
 - evaluationMetrics.py : 模型指标文件
 - model.py : 模型文件
-- new_id_convert.py : newId和文本的对应关系，以及newId-convert-id
+- new_id_convert.py : 新闻id和对应新闻的对应关系，以及新闻id和id的对应关系
 - train.py : 模型训练文件
 ## 环境(Windows)
 项目环境参考文件：environment.yml<br>
 主要运行环境:PyTorch、Transformers、swanlab、dataclasses
 ## 快速运行
+运行命令目录(命令均在ITREC路径下):
+```
+cd ~\ITREC
+```
 1.在终端输入
 ```powershell
 swanlab login
@@ -27,8 +31,8 @@ swanlab.init(
     workspace="iwills",
     # 跟踪超参数和实验元数据
     config={
-        "adamW_bert_lr": self.config.trainW_bert_lr,
-        "adamW_classifier_lr": self.config.trainW_classifier_lr,
+        "adamW_bert_lr": self.config.train.adamW_bert_lr,
+        "adamW_classifier_lr": self.config.train.adamW_classifier_lr,
         "epochs": self.epochs,
         "dropout" : self.config.model.dropout,
         "batch_size" : self.config.data.batch_size
@@ -37,7 +41,13 @@ swanlab.init(
 ```
 2.根据项目更改config.py的配置<br>
 3.运行datasets_clean.py文件<br>
+```
+python Demo/demo1/datasets_clean.py
+```
 4.运行train.py文件
+```
+python Demo/demo1/train.py
+```
 ## 超参数不同下的指标对比
 | 序号 | 训练 | epochs | batch | dropout | bert-base-lr | classifier-lr |  best_dev_acc | test_loss | test_acc |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
