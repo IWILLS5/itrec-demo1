@@ -1,5 +1,6 @@
 import json
 import os 
+from pathlib import Path
 
 import torch
 import torch.nn as nn
@@ -7,43 +8,39 @@ import torch.optim as optim
 from transformers import AutoTokenizer
 import swanlab
 
-from config import Config
 from model import TCModel_formBert
-from datasets import TC_Data, TC_DataLoader
-from datasets_clean import TC_clean
+from datasets import TC_Data
 from evaluationMetrics import EvaluationMetrics
+from utils import args_analyse, count_folder
 
-
-# 计算outputs中的文件夹数量
-def count_folder(dir):
-    folders = os.listdir(dir)
-    return len(folders)
 
 class TC_Experiment:
     def __init__(self, config, new_id_convert):
         self.config = config
         self.new_id_convert = new_id_convert
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model = TCModel_formBert(config.model).to(self.device)
-        self.tokenizer = AutoTokenizer.from_pretrained(config.data.tokenizer_path)
-        self.datasets_len, self.dataloader = self.get_DataLoader(config.data, self.new_id_convert, self.tokenizer)
+        self.model = TCModel_formBert(self.config['model']).to(self.device)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.config['data']['tokenizer_path'])
+        self.datasets_len, self.dataloader = self.get_DataLoader(self.config['data'], self.new_id_convert, self.tokenizer)
         self.criterion = nn.CrossEntropyLoss()
-        self.epochs = config.train.epochs
-        self.em = EvaluationMetrics(self.config.model.num_labels)
+        self.epochs = self.config['train']['epochs']
+        self.em = EvaluationMetrics(self.config['model']['num_labels'])
 
         #不冻结bert-base-model的参数，但以较小的学习率
         self.optimizer = optim.AdamW([
-            {'params':self.model.pre_trained_model.parameters(), 'lr':config.train.adamW_bert_lr},
-            {'params':self.model.classifier.parameters(), 'lr':config.train.adamW_classifier_lr}
+            {'params':self.model.pre_trained_model.parameters(), 'lr':config['train']['adamW_bert_lr']},
+            {'params':self.model.classifier.parameters(), 'lr':config['train']['adamW_classifier_lr']}
         ], weight_decay=0.01, eps=1e-8)
 
         #统计当前outputs/demo1/中有多少
-        nums = str(count_folder(config.exp.output_dir))
-        os.mkdir(config.exp.output_dir / nums )
+        output_folder = Path(config['exp']['output_dir'])
 
-        self.best_check_point_path = config.exp.output_dir / nums / 'best_model.pt'
-        self.history_path = config.exp.output_dir / nums / 'history.json'
-        self.result_path = config.exp.output_dir / nums / 'result.json'
+        nums = str(count_folder(output_folder))
+        os.mkdir(output_folder / nums )
+
+        self.best_check_point_path = output_folder / nums / 'best_model.pt'
+        self.history_path = output_folder / nums / 'history.json'
+        self.result_path = output_folder / nums / 'result.json'
     
     #保存历史数据
     def save_history(self, history, output_path):
@@ -122,23 +119,27 @@ class TC_Experiment:
     def get_DataLoader(self, config, new_id_convert, tokenizer):
         datasets = []
         datasets_len = {}
-        for name, path in config.data_path.items():
+        for name, path in config['data_path'].items():
             dataset = TC_Data(data_path=path, tokenizer=tokenizer,
                             new_id_convert=new_id_convert,
-                            max_len=config.max_len)
+                            max_len=config['max_len'])
             datasets_len[name] = len(dataset)
             datasets.append(dataset)
         train_datas, dev_datas, test_datas = datasets
-        DataLoader_Factory = TC_DataLoader(tokenizer)
 
-        train_DataLoader = DataLoader_Factory.get_dataLoader(
-                train_datas, config.batch_size, True, config.num_workers,  config.pin_memory)
+        batch_size = config['batch_size']
+        num_workers = config['num_workers']
+        pin_memory = True if torch.cuda.is_available() else False
 
-        dev_DataLoader = DataLoader_Factory.get_dataLoader(
-                dev_datas, config.batch_size, False, config.num_workers,  config.pin_memory)
+        train_DataLoader = train_datas.get_dataLoader(
+                batch_size, True, num_workers, pin_memory)
 
-        test_DataLoader = DataLoader_Factory.get_dataLoader(
-                test_datas, config.batch_size, False, config.num_workers,  config.pin_memory)
+        dev_DataLoader = dev_datas.get_dataLoader(
+                batch_size, False, num_workers, pin_memory)
+
+        test_DataLoader = test_datas.get_dataLoader(
+                batch_size, False, num_workers, pin_memory)
+        
         return datasets_len ,{
             'train' : train_DataLoader, 
             'dev' : dev_DataLoader,
@@ -155,11 +156,11 @@ class TC_Experiment:
             workspace="iwills",
             # 跟踪超参数和实验元数据
             config={
-                "adamW_bert_lr": self.config.train.adamW_bert_lr,
-                "adamW_classifier_lr": self.config.train.adamW_classifier_lr,
+                "adamW_bert_lr": self.config['train']['adamW_bert_lr'],
+                "adamW_classifier_lr": self.config['train']['adamW_classifier_lr'],
                 "epochs": self.epochs,
-                "dropout" : self.config.model.dropout,
-                "batch_size" : self.config.data.batch_size
+                "dropout" : self.config['model']['dropout'],
+                "batch_size" : self.config['data']['batch_size']
             }
         )
 
@@ -279,10 +280,11 @@ class TC_Experiment:
         self.train()
         self.test_best_model()
 
+
 def main():
-    config = Config()
+    config = args_analyse()
     #获取new_id_convert
-    with open(config.data.TC_new_id_convert_path, "r", encoding="utf-8") as f:
+    with open(config['data']['TC_new_id_convert_path'], "r", encoding="utf-8") as f:
         data = json.load(f)
     
     new_id_convert = data['new_id_convert']

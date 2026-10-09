@@ -2,7 +2,7 @@
 该项目基于bert-base模型进行fine-tuning, 在原有模型的基础上添加分类头，以完成新闻头条文本分类的任务。<br>
 具体数据集和demo说明参考仓库：**https://github.com/DMU-ITREC/itrec-nlp-newcomer-guide/tree/main**
 ## 项目文件
-- config.py : 模型配置文件
+- config.json : 模型配置文件
 - datasets_clean.py : 数据预处理文件(清洗以及生成new_id_convert.json)
 - datasets.py : 数据集文件
 - environment.yml : conda环境文件
@@ -10,9 +10,10 @@
 - model.py : 模型文件
 - new_id_convert.py : 新闻id和对应新闻的对应关系，以及新闻id和id的对应关系
 - train.py : 模型训练文件
+- utils.py : 通用工具文件
 ## 环境(Windows)
 项目环境参考文件：environment.yml<br>
-主要运行环境:PyTorch、Transformers、swanlab、dataclasses
+主要运行环境:PyTorch、Transformers、swanlab
 ## 快速运行
 运行命令目录(命令均在ITREC路径下):
 ```

@@ -5,9 +5,9 @@ class TCModel_formBert(nn.Module):
     def __init__(self, config):
         super().__init__()
         
-        pt_model_path = config.pt_model_path
-        num_labels = config.num_labels
-        dropout = config.dropout
+        pt_model_path = config['pt_model_path']
+        num_labels = config['num_labels']
+        dropout = config['dropout']
         
         #预训练模型
         self.pre_trained_model = BertModel.from_pretrained(
@@ -35,10 +35,8 @@ class TCModel_formBert(nn.Module):
 
 
 if __name__ == '__main__':
-    from config import Config
-    config = Config()
-    pt_model_path = config.model.pt_model_path
-    num_labels = config.model.num_labels
+    from utils import args_analyse
+    config = args_analyse()
 
-    model = TCModel_formBert(pt_model_path, num_labels)
+    model = TCModel_formBert(config['model'])
     print(model)

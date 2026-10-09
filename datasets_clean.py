@@ -91,9 +91,10 @@ def TC_clean(data_path, TC_new_id_convert_path):
 
 
 if __name__ == '__main__':
-    from config import Config
-    config = Config()
-    data_path = config.data.data_path
-    TC_new_id_convert_path = config.data.TC_new_id_convert_path
+    from utils import args_analyse
+    config = args_analyse()
+
+    data_path = config['data']['data_path']
+    TC_new_id_convert_path = config['data']['TC_new_id_convert_path']
     
     TC_clean(data_path, TC_new_id_convert_path)
