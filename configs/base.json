@@ -17,7 +17,9 @@
         "dropout" : 0.1
     },
     "train":{
-        "epochs" : 3,
+        "epochs" : 20, 
+        "ES_patience" :5, 
+        "warmup_ratio" : 0.1, 
         "adamW_bert_lr" : 2e-5,
         "adamW_classifier_lr" : 1e-3
     },

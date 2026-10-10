@@ -1,4 +1,3 @@
-import os
 import argparse
 import json
 
@@ -9,51 +8,28 @@ def args_analyse():
     parser.add_argument(
         "--config", default="Demo/demo1/configs/base.json"
     )
-    #data的数据)
-    parser.add_argument("--max_len", type=int)
-    parser.add_argument("--batch_size", type=int)
-    parser.add_argument("--num_workers", type=int)
-    #model的数据
-    parser.add_argument("--num_labels", type=int)
-    parser.add_argument("--dropout", type=float)
-    #train的数据
-    parser.add_argument("--epochs", type=int)
-    parser.add_argument("--adamW_bert_lr", type=float)
-    parser.add_argument("--adamW_classifier_lr", type=float)
     args = parser.parse_args()
-
     with open(args.config, 'r', encoding='utf-8') as f:
         config = json.load(f)
-
-
-    if args.max_len is not None:
-        config["data"]["max_len"] = args.max_len
-
-    if args.batch_size is not None:
-        config["data"]["batch_size"] = args.batch_size
-
-    if args.num_workers is not None:
-        config["train"]["num_workers"] = args.num_workers
-
-    if args.num_labels is not None:
-        config["model"]["num_labels"] = args.num_labels
-
-    if args.dropout is not None:
-        config["model"]["dropout"] = args.dropout
-
-    if args.epochs is not None:
-        config["train"]["epochs"] = args.epochs
-
-    if args.adamW_bert_lr is not None:
-        config["train"]["adamW_bert_lr"] = args.adamW_bert_lr
-
-    if args.adamW_classifier_lr is not None:
-        config["train"]["adamW_classifier_lr"] = args.adamW_classifier_lr
-
-    
     return config
 
-# 计算dir中的文件夹数量
-def count_folder(dir):
-    folders = os.listdir(dir)
-    return len(folders)
+
+def fmt(x):
+    if isinstance(x, int):
+        return str(x)
+    s = f"{x:e}"                       # 1e-3 → '1.000000e-03'
+    mantissa, exp = s.split('e')
+    mantissa = mantissa.rstrip('0.')  # '1.000000' → '1'
+    exp = str(int(exp))                # '-03' → '-3'
+    return f"{mantissa}e{exp}"
+
+def op_parse(output_folder, config):
+    parts = [
+        str(config['train']['epochs']), 
+        str(config['data']['batch_size']),
+        str(config['model']['dropout']),
+        fmt(config['train']['adamW_bert_lr']),
+        fmt(config['train']['adamW_classifier_lr'])
+    ]
+
+    return output_folder/ '_'.join(parts)

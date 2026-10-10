@@ -5,13 +5,14 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.optim.lr_scheduler import LinearLR, CosineAnnealingLR, SequentialLR
 from transformers import AutoTokenizer
 import swanlab
 
 from model import TCModel_formBert
 from datasets import TC_Data
 from evaluationMetrics import EvaluationMetrics
-from utils import args_analyse, count_folder
+from utils import args_analyse, op_parse
 
 
 class TC_Experiment:
@@ -24,23 +25,44 @@ class TC_Experiment:
         self.datasets_len, self.dataloader = self.get_DataLoader(self.config['data'], self.new_id_convert, self.tokenizer)
         self.criterion = nn.CrossEntropyLoss()
         self.epochs = self.config['train']['epochs']
+        self.ES_patience = self.config['train']['ES_patience']
         self.em = EvaluationMetrics(self.config['model']['num_labels'])
 
+        
         #不冻结bert-base-model的参数，但以较小的学习率
         self.optimizer = optim.AdamW([
             {'params':self.model.pre_trained_model.parameters(), 'lr':config['train']['adamW_bert_lr']},
             {'params':self.model.classifier.parameters(), 'lr':config['train']['adamW_classifier_lr']}
         ], weight_decay=0.01, eps=1e-8)
 
-        #统计当前outputs/demo1/中有多少
+        #获取总共的batch次数
+        total_steps = self.epochs * len(self.dataloader['train'])
+        #计算warmup和decays的步数
+        warmup_steps = max(1, int(total_steps * self.config['train']['warmup_ratio']))
+        decay_steps = max(total_steps - warmup_steps, 1)
+        warmup_scheduler = LinearLR(
+            self.optimizer,
+            start_factor=0.1,
+            total_iters=warmup_steps
+        )
+        cosine_scheduler = CosineAnnealingLR(
+            self.optimizer, 
+            T_max=decay_steps,
+            eta_min=0
+        )
+        self.scheduler = SequentialLR(
+            self.optimizer,
+            schedulers=[warmup_scheduler, cosine_scheduler],
+            milestones=[warmup_steps]
+        )
+
         output_folder = Path(config['exp']['output_dir'])
+        output_path = op_parse(output_folder, self.config)
+        os.mkdir(output_path)
 
-        nums = str(count_folder(output_folder))
-        os.mkdir(output_folder / nums )
-
-        self.best_check_point_path = output_folder / nums / 'best_model.pt'
-        self.history_path = output_folder / nums / 'history.json'
-        self.result_path = output_folder / nums / 'result.json'
+        self.best_check_point_path = output_path / 'best_model.pt'
+        self.history_path = output_path / 'history.json'
+        self.result_path = output_path / 'result.json'
     
     #保存历史数据
     def save_history(self, history, output_path):
@@ -52,12 +74,14 @@ class TC_Experiment:
         checkpoint = {
             'epoch' : epoch,
             'model_state_dict' : self.model.state_dict(),
-            'idx_to_class' : self.new_id_convert,
+            'optimizer_state_dict': self.optimizer.state_dict(),
+            'scheduler': self.scheduler.state_dict(),
+            'class_id2index' : self.new_id_convert,
             'dev_acc' : dev_acc
         }
         torch.save(checkpoint, self.best_check_point_path)
     # 训练一个epoch
-    def train_epoch(self, model, dataLoader, criterion, optimizer, device):
+    def train_epoch(self, model, dataLoader, criterion, optimizer, scheduler, device):
         
         model.train()
         training_loss = 0.0
@@ -74,8 +98,9 @@ class TC_Experiment:
             output = model(input_ids, token_type_ids, attention_mask)
             loss = criterion(output, labels)
             loss.backward()
-            optimizer.step()
 
+            optimizer.step()
+            scheduler.step()
             batch_size = labels.size(0)
             training_loss += loss.item() * batch_size
             training_correct += (output.argmax(dim=1) == labels).sum().item()
@@ -175,8 +200,8 @@ class TC_Experiment:
             'dev_f1' : []
         }
 
-        best_dev_acc = 0.0
-
+        best_dev_acc, best_dev_loss = float('-inf'), float('inf')
+        num_bad_epochs = 0
         print('----------------配置展示----------------')
         print(f'运行设备:{self.device}')
         for name, size in self.datasets_len.items():
@@ -189,6 +214,7 @@ class TC_Experiment:
                 self.dataloader['train'],
                 self.criterion,
                 self.optimizer,
+                self.scheduler,
                 self.device
             )
 
@@ -231,10 +257,22 @@ class TC_Experiment:
                 f"Dev Recall: {dev_recall:.4f} | "
                 f"Dev F1: {dev_f1:.4f}"
             )
-
-            if dev_acc > best_dev_acc:
+            #先判断acc，相等后再判断loss
+            is_better = dev_acc > best_dev_acc or \
+                    (dev_acc == best_dev_acc and dev_loss <= best_dev_loss)
+            
+            if is_better:
                 best_dev_acc = dev_acc
+                best_dev_loss = dev_loss #首次最高的dev_acc直接记录loss
                 self._save_best_checkpoint(epoch, dev_acc)
+                num_bad_epochs = 0
+
+            else:
+                num_bad_epochs += 1
+                
+            if num_bad_epochs >= self.ES_patience:
+                print(f"Early Stopping at epoch {epoch}")
+                break
         self.save_history(history, self.history_path)
 
     def test_best_model(self):

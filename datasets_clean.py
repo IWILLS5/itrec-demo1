@@ -32,24 +32,16 @@ def TC_clean(data_path, TC_new_id_convert_path):
 
     def re_ids_find_max_len(datas):
         new_ids = []
-        max_text_len = -1
         sorts = [0] * len(id_to_new_id.keys())
         for data in datas:
             sorts[new_id_convert[data[1]]] += 1
             new_ids.append(data[0])
-            text_len = len(data[3])
-            if text_len > max_text_len:
-                max_text_len = text_len
-        return new_ids, max_text_len, sorts
+        return new_ids, sorts
 
-    train_new_ids, max_train_text_len, train_sorts = re_ids_find_max_len(datas['train'])
-    dev_new_ids, max_dev_text_len, dev_sorts = re_ids_find_max_len(datas['dev'])
-    test_new_ids, max_test_text_len, test_sorts = re_ids_find_max_len(datas['test'])
-    
-    print('--------------------------------------')
-    print(f'train数据集文本最大长度 = {max_train_text_len}')
-    print(f'dev数据集文本最大长度 = {max_dev_text_len}')
-    print(f'test数据集文本最大长度 = {max_test_text_len}')
+    train_new_ids, train_sorts = re_ids_find_max_len(datas['train'])
+    dev_new_ids, dev_sorts = re_ids_find_max_len(datas['dev'])
+    test_new_ids, test_sorts = re_ids_find_max_len(datas['test'])
+
 
     print('----------------train各个类别数据数量----------------')
     for i, nums in enumerate(train_sorts):
