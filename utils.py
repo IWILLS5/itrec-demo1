@@ -7,7 +7,7 @@ def args_analyse():
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--config", default="Demo/demo1/config.json"
+        "--config", default="Demo/demo1/configs/base.json"
     )
     #data的数据)
     parser.add_argument("--max_len", type=int)
