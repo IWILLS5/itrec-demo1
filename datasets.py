@@ -66,10 +66,10 @@ if __name__ == '__main__':
     tokenizer_path = config['data']['tokenizer_path']
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
     train_datas = TC_Data(config['data']['data_path']['train'], tokenizer, new_id_convert)
-    batch_size = 5
+    batch_size = config['data']['batch_size']
     shuffle = True
-    num_workers = 4
-    pin_memory = True
+    num_workers = config['data']['num_workers']
+    pin_memory = True if torch.cuda.is_available() else False
     dataloader = train_datas.get_dataLoader(batch_size, shuffle, num_workers, pin_memory)
     for batch in dataloader:
         print(batch)
