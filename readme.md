@@ -121,11 +121,11 @@ python Demo/demo1/train.py
 | 8 | train8 | 5 | 2 | 0.1 | 32 | 0.1 | $5 * 10^{-5}$ | $1 * 10^{-3}$ | 0.8340 | 0.7311 | **0.8374** |
 | 9 | train9 | 5 | 2 | 0.1 | 32 | 0.1 | $5 * 10^{-6}$ | $1 * 10^{-3}$ | 0.8450 | 0.5856 | **0.8336** |
 - 以上的test_acc都是在每一套参数下最优的model上测试，以上有以下的对照组：
-- **dropout(1、2、3，但仅仅针对分类头)**:在dropout分别为0.1，0.2，0.3的情况下，三种不同的配置，但各个曲线非常接近，说明dropout在这个范围内，对模型练收敛影响较小。验证集上，dropout=0.3的时候，最总的acc、precision、recall和f1参数略高，但与dropout=0.1的差距较小。各个模型在1-2个epoch后，训练损持续下降，而验证集的损失却开始回升，表现出一部分的过拟合。
-![alt text](md_image/image-8.png)![alt text](md_image/image-9.png)
-- **batch和更新率（1、4，4、5 和 1、5、6）** : 分析数据，train4的batch_size降低，学习率不变，数据更新步数变大；因为batch_size降低，该batch的梯度计的方差可能会变大，并伴随有噪声，模型拟合train训练集更快；train5和train6的学习率都于batch_size同比例缩放，模型拟合过程的曲线都于base接近
-![alt text](md_image/image-10.png)![alt text](md_image/image-11.png)
-- **epoch（1、7）** :train7与train1的差别是epochs和early stop，且因为epochs增加，warmup的步数也增加一倍。在epochs为0和1的时候，两个配置下的模型合数据接近，但从epochs为2时，train7的dev_loss开始逐渐大于train1，可能与train7的部分数据错误预测更加自信相关，导致loss偏大；在epochs4以后，train7模型不断过拟合train数据集，dev的loss不断增加，但acc增加的非常缓慢以至于最后不变
-![alt text](md_image/image-12.png)![alt text](md_image/image-13.png)
-- **bast-base的lr（1, 8，9）**:train8和trian9在不同于train1的bert-base的学习率，train8的设置数值为5e-5,train9的设置数据为5e-6；可以根据数据观测较小的bert-base参数学习率，模型关于训练集的loss较大，acc较小，模型训练的更加温和。在本次实验中，较小的学习率使得模型过拟合迹象较轻，对于dev的泛化能较强
-![alt text](md_image/image-14.png)![alt text](md_image/image-15.png)
+    - **dropout(1、2、3，但仅仅针对分类头)**:在dropout分别为0.1，0.2，0.3的情况下，三种不同的配置，但各个曲线非常接近，说明dropout在这个范围内，对模型练收敛影响较小。验证集上，dropout=0.3的时候，最总的acc、precision、recall和f1参数略高，但与dropout=0.1的差距较小。各个模型在1-2个epoch后，训练损持续下降，而验证集的损失却开始回升，表现出一部分的过拟合。
+    ![alt text](md_image/image-8.png)![alt text](md_image/image-9.png)
+    - **batch和更新率（1、4，4、5 和 1、5、6）** : 分析数据，train4的batch_size降低，学习率不变，数据更新步数变大；因为batch_size降低，该batch的梯度计的方差可能会变大，并伴随有噪声，模型拟合train训练集更快；train5和train6的学习率都于batch_size同比例缩放，模型拟合过程的曲线都于base接近
+    ![alt text](md_image/image-10.png)![alt text](md_image/image-11.png)
+    - **epoch（1、7）** :train7与train1的差别是epochs和early stop，且因为epochs增加，warmup的步数也增加一倍。在epochs为0和1的时候，两个配置下的模型合数据接近，但从epochs为2时，train7的dev_loss开始逐渐大于train1，可能与train7的部分数据错误预测更加自信相关，导致loss偏大；在epochs4以后，train7模型不断过拟合train数据集，dev的loss不断增加，但acc增加的非常缓慢以至于最后不变
+    ![alt text](md_image/image-12.png)![alt text](md_image/image-13.png)
+    - **bast-base的lr（1, 8，9）**:train8和trian9在不同于train1的bert-base的学习率，train8的设置数值为5e-5,train9的设置数据为5e-6；可以根据数据观测较小的bert-base参数学习率，模型关于训练集的loss较大，acc较小，模型训练的更加温和。在本次实验中，较小的学习率使得模型过拟合迹象较轻，对于dev的泛化能较强
+    ![alt text](md_image/image-14.png)![alt text](md_image/image-15.png)
