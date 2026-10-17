@@ -107,35 +107,8 @@ python Demo/demo1/train.py
 ```
 
 ## 超参数不同下的指标对比
-### 没有early stopping和scheduler
-在swanlab上的训练数据展示url:https://swanlab.cn/@iwills/itrec-tc/v1/1ibezn/overview
-| 序号 | 训练 | epochs | batch | dropout | bert-base-lr | classifier-lr |  best_dev_acc | test_loss | test_acc |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| 1 | train1 | 3 | 32 | 0.1 | $2 * 10^{-5}$ | $1 * 10^{-3}$ | 0.836 | 0.653 | **0.816** |
-| 2 | train2 | 3 | 32 | 0.2 | $2 * 10^{-5}$ | $1 * 10^{-3}$ | 0.825 | 0.662 | **0.824** |
-| 3 | train3 | 3 | 32 | 0.3 | $2 * 10^{-5}$ | $1 * 10^{-3}$ | 0.823 | 0.685 | **0.829** |
-| 4 | train4 | 3 | 16 | 0.1 | $2 * 10^{-5}$ | $1 * 10^{-3}$ | 0.823 | 0.644 | **0.796** |
-| 5 | train5 | 3 | 16 | 0.1 | $1 * 10^{-5}$ | $5 * 10^{-4}$ | 0.831 | 0.652 | **0.831** |
-| 6 | train6 | 3 | 64 | 0.1 | $4 * 10^{-5}$ | $2 * 10^{-3}$ | 0.828 | 0.613 | **0.828** |
-| 7 | train7 | 10 | 32 | 0.1 | $2 * 10^{-5}$ | $1 * 10^{-3}$ | 0.845 | 0.929 | **0.836** |
-| 8 | train8 | 3 | 32 | 0.1 | $5 * 10^{-5}$ | $1 * 10^{-3}$ | 0.821 | 0.649 | **0.811** |
-| 9 | train9 | 3 | 32 | 0.1 | $5 * 10^{-6}$ | $1 * 10^{-3}$ | 0.824 | 0.616 | **0.816** |
-- 以上的test_acc都是在每一套参数下最优的model上测试，以上有以下的对照组：
-    - **dropout(1、2、3，但仅仅针对分类头)**:在dropout不断微调提高下，训练集的loss都在下降，acc都在上升；![alt text](md_image/image-0.png)在验证集上，base-line模型在epoch2的时候达到最好效果，在epoch3的时候，模型在训练集上过拟合，在验证集上的泛化能力降低，导致loss上升，acc下降；而train2和train3相对于base-line模型，dropout均提高，训练时屏蔽更多特征，减少分类头对特定特征的依赖，可能抑制过拟合，也可能让拟合更加困难。
-    ![alt text](md_image/image-1.png)
-    - **batch和更新率（1、4，4、5 和 1、5、6）** : 在对比不同batch，以及在batch相同的基础上对比不同学习率；对于base-line和train-4，因为train-4比base-line的batch-size降低一倍，学习率不变，优化的步数增加一倍，但因为batch减小，导致梯度会有噪声，且更新次数变多，而导致训练轨迹发生变化，可以看出来实验中batch-size变小更拟合训练集，但是在验证集上的结果却不如base-line模型，更多的优化步数让模型更加拟合训练集，但在验证集山的表现就稍低；对于train-4和train-5，train-5在降低一倍batch-size的情况下，将学习率降低了一倍，降低了模型对训练集的拟合程度，从而对验证集的泛化能力大于train-4；对于base-line、train-5和train-6,train-5和train-6都是在更改batch-size的同时，按照相同倍率放大或者缩小了模型的更新率，使得三个模型的各个数据图像走向相同，但仍是base-line在epoch2时的结果更优，当batch-size为16时，批次数据小，方差较大，且更新次数多；而batch-size为64的时候，方差虽然较小，但更新次数较低；
-    ![alt text](md_image/image-6.png)
-    ![alt text](md_image/image-7.png)
-    - **epoch（1、7）** : train-7在base-line模型的参数下，仅仅修改了epochs，可以看到模型在训练集上的loss越来越低，acc达到99%，且验证集的loss越来越高，可以发现模型对于训练集越来越过拟合，且验证集的acc一直在波动，且在epoch7的时候，dev-acc超过base-line模型的最优结果，但是dev-loss却远超base-line在最优结果时的dev-loss，说明模型继续训练可能会让部分样本分类改善，同时让部分错误预测更加自信，导致acc和loss出现了分歧
-    ![alt text](md_image/image-4.png)
-    ![alt text](md_image/image-5.png)
-    - **bast-base的lr（1, 8，9）**:在对比bert-base模型参数的lr中，在同一epoch下，较大的lr，train-loss较低，train-acc较高，在dev-loss较高，dev-acc较低；学习率增大，在相同步数下产生更大的参数调整，会导致bert-base模型的参数从原本拟合预训练的数据集，到更拟合训练集的数据，使模型降低对未见文本的表示能力，进而在验证集上的表现就越差；但可以看到在base-line模型中lr在本次对比实验中位于中间层次，epoch为2的时候，dev-acc达到最好的效果，即bert-base的lr设置为2e-5可以在epoch为2的时候达到最佳
-    ![alt text](md_image/image-2.png)
-    ![alt text](md_image/image-3.png)
-
-
-### 添加early stopping和scheduler
 在swanlab上的训练数据展示url:https://swanlab.cn/@iwills/itrec-tc-new/v0/overview
+
 | 序号 | 训练 | epochs | EarlyStopping | warmup—ratio | batch | dropout | bert-base-lr | classifier-lr |  best_dev_acc | test_loss | test_acc |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | 1 | train1 | 5 | 2 | 0.1 | 32 | 0.1 | $2 * 10^{-5}$ | $1 * 10^{-3}$ | 0.8410 | 0.6197 | **0.8440** |
@@ -147,12 +120,12 @@ python Demo/demo1/train.py
 | 7 | train7 | 10 | 3 | 0.1 | 32 | 0.1 | $2 * 10^{-5}$ | $1 * 10^{-3}$ | 0.8400 | 0.8106 | **0.8430** |
 | 8 | train8 | 5 | 2 | 0.1 | 32 | 0.1 | $5 * 10^{-5}$ | $1 * 10^{-3}$ | 0.8340 | 0.7311 | **0.8374** |
 | 9 | train9 | 5 | 2 | 0.1 | 32 | 0.1 | $5 * 10^{-6}$ | $1 * 10^{-3}$ | 0.8450 | 0.5856 | **0.8336** |
-- 以上的test_acc都是在每一套参数下最优的model上测试，以上有以下的对照组：
-    - **dropout(1、2、3，但仅仅针对分类头)**:在dropout分别为0.1，0.2，0.3的情况下，三种不同的配置，但各个曲线非常接近，说明dropout在这个范围内，对模型训练收敛影响较小。验证集上，dropout=0.3的时候，最总的acc、precision、recall和f1参数略高，但与dropout=0.1的差距较小。各个模型在1-2个epoch后，训练损失持续下降，而验证集的损失却开始回升，表现出一部分的过拟合。
-    ![alt text](md_image/image-8.png)![alt text](md_image/image-9.png)
-    - **batch和更新率（1、4，4、5 和 1、5、6）** : 分析数据，train4的batch_size降低，学习率不变，数据更新步数变大；因为batch_size降低，该batch的梯度估计的方差可能会变大，并伴随有噪声，模型拟合train训练集更快；train5和train6的学习率都于batch_size同比例缩放，模型拟合过程的曲线都于base接近
-    ![alt text](md_image/image-10.png)![alt text](md_image/image-11.png)
-    - **epoch（1、7）** :train7与train1的差别是epochs和early stop，且因为epochs增加，warmup的步数也增加一倍。在epochs为0和1的时候，两个配置下的模型拟合数据接近，但从epochs为2时，train7的dev_loss开始逐渐大于train1，可能与train7的部分数据错误预测更加自信相关，导致loss偏大；在epochs4以后，train7的模型不断过拟合train数据集，dev的loss不断增加，但acc增加的非常缓慢以至于最后不变
-    ![alt text](md_image/image-12.png)![alt text](md_image/image-13.png)
-    - **bast-base的lr（1, 8，9）**:train8和trian9在不同于train1的bert-base的学习率，train8的设置数值为5e-5,train9的设置数据为5e-6；可以根据数据观测，较小的bert-base参数学习率，模型关于训练集的loss较大，acc较小，模型训练的更加温和。在本次实验中，较小的学习率使得模型过拟合迹象较轻，对于dev的泛化能力较强
-    ![alt text](md_image/image-14.png)![alt text](md_image/image-15.png)
+以上的test_acc都是在每一套参数下最优的model上测试，以上有以下的对照组：
+- **dropout(1、2、3，但仅仅针对分类头)**:在dropout分别为0.1，0.2，0.3的情况下，三种不同的配置，但各个曲线非常接近，说明dropout在这个范围内，对模型练收敛影响较小。验证集上，dropout=0.3的时候，最总的acc、precision、recall和f1参数略高，但与dropout=0.1的差距较小。各个模型在1-2个epoch后，训练损持续下降，而验证集的损失却开始回升，表现出一部分的过拟合。
+![alt text](md_image/image-8.png)![alt text](md_image/image-9.png)
+- **batch和更新率（1、4，4、5 和 1、5、6）** : 分析数据，train4的batch_size降低，学习率不变，数据更新步数变大；因为batch_size降低，该batch的梯度计的方差可能会变大，并伴随有噪声，模型拟合train训练集更快；train5和train6的学习率都于batch_size同比例缩放，模型拟合过程的曲线都于base接近
+![alt text](md_image/image-10.png)![alt text](md_image/image-11.png)
+- **epoch（1、7）** :train7与train1的差别是epochs和early stop，且因为epochs增加，warmup的步数也增加一倍。在epochs为0和1的时候，两个配置下的模型合数据接近，但从epochs为2时，train7的dev_loss开始逐渐大于train1，可能与train7的部分数据错误预测更加自信相关，导致loss偏大；在epochs4以后，train7模型不断过拟合train数据集，dev的loss不断增加，但acc增加的非常缓慢以至于最后不变
+![alt text](md_image/image-12.png)![alt text](md_image/image-13.png)
+- **bast-base的lr（1, 8，9）**:train8和trian9在不同于train1的bert-base的学习率，train8的设置数值为5e-5,train9的设置数据为5e-6；可以根据数据观测较小的bert-base参数学习率，模型关于训练集的loss较大，acc较小，模型训练的更加温和。在本次实验中，较小的学习率使得模型过拟合迹象较轻，对于dev的泛化能较强
+![alt text](md_image/image-14.png)![alt text](md_image/image-15.png)
