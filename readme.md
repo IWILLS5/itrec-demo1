@@ -107,8 +107,8 @@ python Demo/demo1/train.py
 ```
 
 ## 超参数不同下的指标对比
-在swanlab上的训练数据展示url:https://swanlab.cn/@iwills/itrec-tc/v1/1ibezn/overview
 ### 没有early stopping和scheduler
+在swanlab上的训练数据展示url:https://swanlab.cn/@iwills/itrec-tc/v1/1ibezn/overview
 | 序号 | 训练 | epochs | batch | dropout | bert-base-lr | classifier-lr |  best_dev_acc | test_loss | test_acc |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | 1 | train1 | 3 | 32 | 0.1 | $2 * 10^{-5}$ | $1 * 10^{-3}$ | 0.836 | 0.653 | **0.816** |
