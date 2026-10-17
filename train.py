@@ -12,7 +12,7 @@ import swanlab
 from model import TCModel_formBert
 from datasets import TC_Data
 from evaluationMetrics import EvaluationMetrics
-from utils import args_analyse, op_parse
+from utils import args_analyse, op_parse, seed_init
 
 
 class TC_Experiment:
@@ -27,7 +27,8 @@ class TC_Experiment:
         self.epochs = self.config['train']['epochs']
         self.ES_patience = self.config['train']['ES_patience']
         self.em = EvaluationMetrics(self.config['model']['num_labels'])
-
+        self.swanlab_project = config['train']['swanlab_project']
+        self.swanlab_workspace = config['train']['swanlan_workspace']
         
         #不冻结bert-base-model的参数，但以较小的学习率
         self.optimizer = optim.AdamW([
@@ -177,8 +178,8 @@ class TC_Experiment:
         # 初始化一个新的 swanlab 实验
         swanlab.init(
             # 设置将记录此次实验的项目信息
-            project="itrec-tc",
-            workspace="iwills",
+            project=self.swanlab_project,
+            workspace=self.swanlab_workspace,
             # 跟踪超参数和实验元数据
             config={
                 "adamW_bert_lr": self.config['train']['adamW_bert_lr'],
@@ -324,7 +325,7 @@ def main():
     #获取new_id_convert
     with open(config['data']['TC_new_id_convert_path'], "r", encoding="utf-8") as f:
         data = json.load(f)
-    
+    seed_init(config['train']['seed'])
     new_id_convert = data['new_id_convert']
     exp = TC_Experiment(config, new_id_convert)
     exp.run()

@@ -1,3 +1,4 @@
+import torch
 import argparse
 import json
 
@@ -33,3 +34,8 @@ def op_parse(output_folder, config):
     ]
 
     return output_folder/ '_'.join(parts)
+
+
+def seed_init(seed):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
