@@ -28,7 +28,7 @@ class TC_Experiment:
         self.ES_patience = self.config['train']['ES_patience']
         self.em = EvaluationMetrics(self.config['model']['num_labels'])
         self.swanlab_project = config['train']['swanlab_project']
-        self.swanlab_workspace = config['train']['swanlan_workspace']
+        self.swanlab_workspace = config['train']['swanlab_workspace']
         
         #不冻结bert-base-model的参数，但以较小的学习率
         self.optimizer = optim.AdamW([
@@ -59,7 +59,13 @@ class TC_Experiment:
 
         output_folder = Path(config['exp']['output_dir'])
         output_path = op_parse(output_folder, self.config)
-        os.mkdir(output_path)
+        if os.path.exists(output_path):
+            option = input("实验数据文件夹已存在，请确认已经保存，是否继续(y or n):\n")
+            if option not in ('y', 'yes'):
+                raise SystemExit("已终止程序运行！！！")
+        else:
+            os.mkdir(output_path)
+
 
         self.best_check_point_path = output_path / 'best_model.pt'
         self.history_path = output_path / 'history.json'
@@ -298,7 +304,7 @@ class TC_Experiment:
 
         result = {
             "best_epoch" : int(checkpoint['epoch']),
-            "bese_dev_acc" : float(checkpoint['dev_acc']),
+            "best_dev_acc" : float(checkpoint['dev_acc']),
             "test_loss" : test_loss,
             "test_acc" : test_acc,
             "precision" : precision,

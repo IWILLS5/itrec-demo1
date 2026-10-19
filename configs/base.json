@@ -24,7 +24,7 @@
         "adamW_classifier_lr" : 1e-3,
         "seed" : 5,
         "swanlab_project" : "itrec-tc-new",
-        "swanlan_workspace" : "iwills"
+        "swanlab_workspace" : "iwills"
     },
     "exp":{
         "output_dir" : "outputs/demo1"

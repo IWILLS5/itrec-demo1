@@ -45,27 +45,31 @@ swanlab login
 # 初始化一个新的 swanlab 实验
 swanlab.init(
     # 设置将记录此次实验的项目信息
-    project="itrec-tc",
-    workspace="iwills",
+    project=self.swanlab_project,
+    workspace=self.swanlab_workspace,
     # 跟踪超参数和实验元数据
     config={
-        "adamW_bert_lr": self.config.train.adamW_bert_lr,
-        "adamW_classifier_lr": self.config.train.adamW_classifier_lr,
+        "adamW_bert_lr": self.config['train']['adamW_bert_lr'],
+        "adamW_classifier_lr": self.config['train']['adamW_classifier_lr'],
         "epochs": self.epochs,
-        "dropout" : self.config.model.dropout,
-        "batch_size" : self.config.data.batch_size
+        "dropout" : self.config['model']['dropout'],
+        "batch_size" : self.config['data']['batch_size']
     }
 )
 ```
-2.根据项目更改config.py的配置<br>
-3.运行datasets_clean.py文件<br>
+2.运行datasets_clean.py文件<br>
 ```
 python Demo/demo1/datasets_clean.py
 ```
-4.运行train.py文件
+3.运行train.py文件<br>
+在终端运行该文件的时候, 根据需要声明自己创建的config文件（configs目录中，默认路径在utils.py中声明）
 ```
+#使用默认base.json
 python Demo/demo1/train.py
+#使用自定义
+python .\Demo\demo1\train.py --config .\Demo\demo1\configs\example.json
 ```
+
 ## 新闻id 与 id的对应关系(new_id_convert.json)
 ```
 {
@@ -127,5 +131,5 @@ python Demo/demo1/train.py
     ![alt text](md_image/image-10.png)![alt text](md_image/image-11.png)
     - **epoch（1、7）** :train7与train1的差别是epochs和early stop，且因为epochs增加，warmup的步数也增加一倍。在epochs为0和1的时候，两个配置下的模型合数据接近，但从epochs为2时，train7的dev_loss开始逐渐大于train1，可能与train7的部分数据错误预测更加自信相关，导致loss偏大；在epochs4以后，train7模型不断过拟合train数据集，dev的loss不断增加，但acc增加的非常缓慢以至于最后不变
     ![alt text](md_image/image-12.png)![alt text](md_image/image-13.png)
-    - **bast-base的lr（1, 8，9）**:train8和trian9在不同于train1的bert-base的学习率，train8的设置数值为5e-5,train9的设置数据为5e-6；可以根据数据观测较小的bert-base参数学习率，模型关于训练集的loss较大，acc较小，模型训练的更加温和。在本次实验中，较小的学习率使得模型过拟合迹象较轻，对于dev的泛化能较强
+    - **bert-base的lr（1, 8，9）**:train8和train9在不同于train1的bert-base的学习率，train8的设置数值为5e-5,train9的设置数据为5e-6；可以根据数据观测较小的bert-base参数学习率，模型关于训练集的loss较大，acc较小，模型训练的更加温和。在本次实验中，较小的学习率使得模型过拟合迹象较轻，对于dev的泛化能力较强
     ![alt text](md_image/image-14.png)![alt text](md_image/image-15.png)

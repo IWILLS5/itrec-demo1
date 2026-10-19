@@ -77,7 +77,7 @@ def TC_clean(data_path, TC_new_id_convert_path):
     print('------------dev数据清洗-------------')
     repeat_ids_test = []
     for id in dev_new_ids:
-        if id in repeat_ids_test:
+        if id in test_new_ids_set:
             repeat_ids_dev.append(id)
     print(f'repeat_ids_test : {repeat_ids_test}')
 

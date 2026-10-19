@@ -2,17 +2,29 @@ import torch
 import argparse
 import json
 
+default_configPath = "Demo/demo1/configs/base.json"
+
 #获取训练超参数
 def args_analyse():
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--config", default="Demo/demo1/configs/base.json"
+        "--config", default= default_configPath
     )
     args = parser.parse_args()
-    with open(args.config, 'r', encoding='utf-8') as f:
-        config = json.load(f)
-    return config
+    
+    try:
+        with open(args.config, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+    except FileNotFoundError:
+        print(f"配置文件不存在: {args.config}")
+        option = input("是否选择继续使用base.json配置(y or n):\n")
+        if option == 'y':
+            with open(default_configPath, 'r', encoding='utf-8') as f:
+                        config = json.load(f)
+        else:
+            raise
+    return config            
 
 
 def fmt(x):
